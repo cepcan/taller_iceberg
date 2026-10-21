@@ -1,0 +1,5 @@
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+notebooks/R/.ipynb_checkpoints
+notebooks/Python/.ipynb_checkpoints
