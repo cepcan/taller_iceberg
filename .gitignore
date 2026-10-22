@@ -3,3 +3,5 @@
 !.pixi/config.toml
 notebooks/R/.ipynb_checkpoints
 notebooks/Python/.ipynb_checkpoints
+notebooks/Python/__marimo__
+notebooks/.ipynb_checkpoints
