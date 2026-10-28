@@ -45,7 +45,7 @@ OAUTH2_SERVER_URI = Sys.getenv("ICEBERGR_REST_OAUTH2_SERVER_URI")
 OAUTH2_SCOPE = Sys.getenv("ICEBERGR_REST_SCOPE")
 ENDPOINT = "https://iceberg.cepcan.org/catalog"
 
-string="
+configura_catalogo <- "
 INSTALL iceberg;
 LOAD iceberg;
 
@@ -64,10 +64,11 @@ ATTACH 'cepcan' AS cepcan (
    ENDPOINT '{ENDPOINT}'
 );
 "
-consulta = glue(string)
+
+consulta_catalogo = glue(configura_catalogo)
 
 
-dbExecute(con, consulta)
+dbExecute(con, consulta_catalogo)
 
 # retrieve the items again
 res <- dbGetQuery(con, "SELECT * FROM cepcan.pyiceberg_namespace.cdata;")

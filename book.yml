@@ -1,19 +1,19 @@
-title: My Marimo Book
-description: A static site built from marimo notebooks + Markdown.
+title:  Taller Apache Iceberg
+description: Taller para el uso de Apache Iceberg para el acceso al Data Lakehouse del centro.
 authors:
-  - name: Your Name
+  - name: CEPCAN
 
 # Uncomment + fill in to enable repo-aware launch buttons (molab / GitHub /
 # Download) on every .py page. The branch is where molab will resolve
 # against; if you're working on a feature branch, change it here.
-# repo: https://github.com/your-org/your-repo
-# branch: main
+#repo: https://github.com/cepcan/
+#branch: main
 
 # Material for MkDocs palette. Any hex color works; uncomment to customise.
-# theme:
-#   palette:
-#     primary: "#1976D2"
-#     accent:  "#FF9800"
+theme:
+   palette:
+     primary: "#2F318D"
+     accent:  "#FF9800"
 
 # Per-chapter launch buttons. molab / download apply to .py only; github
 # applies to both .md and .py. Set any of these to false to hide them.
