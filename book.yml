@@ -45,4 +45,4 @@ dependencies:
 toc:
   - file: content/intro.md
   - file: content/icebergr.md
-  - file: content/example.py
+  - file: content/pyiceberg.md
