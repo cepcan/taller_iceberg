@@ -124,10 +124,12 @@ icebergr_collect(
 icebergr_collect(tbl)
 ```
 
-!!! warning "Error al reiniciar acceso a metadatos"
-    Warnings are orange.
+!!! warning "Error al reiniciar acceso a metadatos en el almacenamiento de datos"
+    Hay un bug de `icebergr` al acceder a los metadatos del Warehouse. Aún no tengo claro el error. Mi sospecha es la siguiente : no se limpia el caché de la conexión y la sesión de usuario se mantiene activa, de manera que, para evitar el acceso compartido al recurso, se bloquea la conexión al almacenamiento.
 
-## Configuración de cliente de [DuckDB](https://duckdb.org/)
+    Por tal motivo, mientras resolvemos el bug, la lectura y escritura de tablas se realizará mediante el cliente de DuckDB. 
+
+## Configuración del cliente de [DuckDB](https://duckdb.org/)
 
 La instalación del cliente de DuckDB de R la realizamos con la siguiente instrucción:
 
@@ -144,6 +146,16 @@ install.packages("duckplyr")
 La documentación de `duckplyr` se encuentra en el sitio [duckplyr.tidyverse.org](https://duckplyr.tidyverse.org/)
 
 El manual de referencia del cliente de R de Duckdb se encuentra en el sitio [r.duckdb.org](https://r.duckdb.org/)
+
+Para usar DuckDB, primero debemos crear un objeto que represente al archivo de la base de datos. Usaremos el caso default `:memory:` el cual creará una base de datos en memoria.
+
+```R
+library(duckdb)
+
+# to start an in-memory database
+con <- dbConnect(duckdb())
+```
+
 
 ```R
 library(duckdb)

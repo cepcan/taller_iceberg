@@ -1,52 +1,60 @@
 import marimo
 
-__generated_with = "0.23.2"
-app = marimo.App()
+__generated_with = "0.25.2"
+app = marimo.App(width="medium")
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _():
     import marimo as mo
 
-    return (mo,)
-
+    return
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
-        # Example Notebook
-
-        This notebook demonstrates a few things `marimo-book` handles for you:
-
-        - Hidden setup cells (the `import marimo as mo` above) don't appear
-          in the rendered page.
-        - `mo.md(...)` cells become native Markdown.
-        - Code cells are shown with syntax highlighting and a copy button.
-        - Cell outputs are baked in at build time — this page works without
-          a Python kernel.
-        - `mo.callout(...)` becomes a themed admonition.
+        # Pyiceberg
+        
         """
     )
     return
 
-
 @app.cell
 def _():
-    # Regular code cells run at build time; their output is embedded in the page.
-    import math
+    from pyiceberg.catalog.rest import RestCatalog
+    import pandas as pd
+    import pyarrow.parquet as pq
+    import pyarrow as pa
+    import polars as pl 
 
-    values = [math.sin(x / 10) for x in range(10)]
-    values
-    return (values,)
+    from dotenv import load_dotenv
+    import os
+    load_dotenv()  # reads variables from a .env file and sets them in os.environ
 
+    CATALOG_URL = "https://iceberg.cepcan.org/catalog"
+    DEMO_WAREHOUSE = "cepcan"
+    CLIENT_ID_SECRET = os.getenv("ICEBERGR_REST_CREDENTIAL")
+    OAUTH2_SERVER_URI = os.getenv("ICEBERGR_REST_OAUTH2_SERVER_URI")
+    SCOPE = os.getenv("ICEBERGR_REST_SCOPE")
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.callout(
-        mo.md("**Hot reload works.** Try editing this cell while `marimo-book serve` is running."),
-        kind="info",
+    catalog = RestCatalog(
+        name="cepcan",
+        warehouse=DEMO_WAREHOUSE,
+        uri=CATALOG_URL,
+        credential=CLIENT_ID_SECRET,
+        **{"oauth2-server-uri": OAUTH2_SERVER_URI, "scope": SCOPE}
     )
+    return (catalog,)
+
+
+@app.cell
+def _(catalog):
+    catalog.load_table(
+        "pyiceberg_namespace.cdata"
+    ).scan(
+        "Municipio == '001 Abalá'"
+    ).to_polars()
     return
 
 
