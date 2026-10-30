@@ -156,23 +156,64 @@ library(duckdb)
 con <- dbConnect(duckdb())
 ```
 
+## Iceberg Extension en DuckDB
+
+La extensión de Iceberg en DuckDB implementa el soporte para el formato de tabla de Apache Iceberg. Hay dos formas de trabajar con Iceberg en DuckDB: 
+
+- *Tablas Individuales* las cuales son leídas directamente del storage al leer los metadatos de la tabla. No se requiere catálogo y es read-only.
+- *Tablas administradas por catálogo* que son accesidas mediante la conexión de un catálogo REST de Iceberg, otorgando las funcionalidades completas, incluida operaciones de escritura.
+
+### Instalación y carga de la extensión
+La instrucción y carga de la extensión de Iceberg en Duckdb se realiza con la siguiente instrucción : 
+
+```sql
+INSTALL AND LOAD iceberg;
+```
+
+Las instrucciones de DuckDB se pueden ejecutar con el cliente de R de DuckDB mediante la función `dbExecute` la cual es una interfaz del paquete [DBI](https://cran.r-project.org/package=DBI) el cual establece una interfaz de comunicación entre R y un sistema de administración de bases de datos relacionales. 
+
+La función `dbExecute` está pensado para consultas en las que no se esperan resultados, como `CREATE TABLE`, `UPDATE`, etc. Mientras que la función `dbGetQuery()` está pensado para utilizarse en consultas que generan resultados (p. ej., `SELECT`).
+
+De manera que la instalación y carga de la extensión de Iceberg puede realizarse desde R con la instrucción: 
 
 ```R
-library(duckdb)
-library(glue)
+dbExecute(con, "INSTALL iceberg; LOAD iceberg;")
+```
 
-# to start an in-memory database
-con <- dbConnect(duckdb())
+### Conexión a Tablas administradas por catálogo
 
+Para el acceso completo de operaciones de lectura y escritura es necesario conectarse a un catálogo REST de Iceberg.
 
+La mayoría de los catálogos se autentican mediante OAuth2; almacena las credenciales en un secreto y vincula el catálogo con `ATTACH ... (TYPE iceberg, ...)`:
+
+```sql
+CREATE SECRET iceberg_secret (
+    TYPE iceberg,
+    CLIENT_ID 'admin',
+    CLIENT_SECRET 'password',
+    OAUTH2_SERVER_URI 'https://catalog.example.com/v1/oauth/tokens'
+);
+
+ATTACH 'warehouse' AS my_catalog (
+    TYPE iceberg,
+    SECRET iceberg_secret,
+    URI 'https://catalog.example.com'
+);
+```
+
+La conexión al catálogo del centro se realizaría de la siguiente manera desde R:
+
+```R
+## Cargamos variables de entorno
 CLIENT_ID = Sys.getenv("CLIENT_ID")
 CLIENT_SECRET = Sys.getenv("CLIENT_SECRET")
 OAUTH2_SERVER_URI = Sys.getenv("ICEBERGR_REST_OAUTH2_SERVER_URI")
 OAUTH2_SCOPE = Sys.getenv("ICEBERGR_REST_SCOPE")
 ENDPOINT = "https://iceberg.cepcan.org/catalog"
 
+## Definimos template para sustituir los valores de las variables de entorno
 configura_catalogo <- "
-INSTALL iceberg;
+INSTALL iceberg; 
 LOAD iceberg;
 
 CREATE SECRET iceberg_secret (
@@ -181,8 +222,8 @@ CREATE SECRET iceberg_secret (
              CLIENT_SECRET '{CLIENT_SECRET}',
              OAUTH2_SERVER_URI '{OAUTH2_SERVER_URI}',
              OAUTH2_SCOPE '{OAUTH2_SCOPE}'     
-	);
-	
+    );
+
 LOAD httpfs;
 ATTACH 'cepcan' AS cepcan (
    TYPE iceberg,
@@ -191,8 +232,100 @@ ATTACH 'cepcan' AS cepcan (
 );
 "
 
+## Formateamos el template 
 consulta_catalogo = glue(configura_catalogo)
 
-
+## Ejecutamos la instrucción
 dbExecute(con, consulta_catalogo)
+```
+
+### Lectura de tablas con Duckdb
+
+Para leer una tabla en Duckdb usamos la función `dbGetQuery()` para ejecutar una consulta que genera un resultado. Realizamos la misma consulta que hicimos con `icebergr`:
+
+```R
+dbGetQuery(con, "SELECT * FROM cepcan.atlas.cdata;")
+```
+
+!!! note 
+    Nótese que usamos el prefijo `cepcan` para acceder posteriormente al namespace `atlas`. Esto se debe a que nos vinculamos a Iceberg con el alias `cepcan` con la instrucción `ATTACH 'cepcan' AS cepcan`. 
+
+
+## Escritura
+
+Para la escritura de tablas usaremos `icebergr` y el cliente de DuckDB. Usaremos `icebergr` para la administración de tareas en el catálogo y DuckDB para la carga de tablas al storage.
+
+### Creación de namespaces
+
+Para crear un nuevo namespace donde subiremos una tabla, usamos la instrucción:
+
+```R
+icebergr_create_namespace(catalog, "prueba")
+```
+
+Como es de esperarse, podemos subir tablas a namespaces ya existentes.
+
+
+### Creación de la tabla
+La función `icebergr_create_table()` toma un data frame como argumento, pero **solo para leer su esquema**: no se realiza ninguna operación de escritura.
+
+La nueva tabla está vacía, sin ningún registro de snapshot:
+
+```R
+template <- data.frame(
+  id = integer(),
+  item = character(),
+  amount = double(),
+  day = as.Date(character())
+)
+
+orders <- icebergr_create_table(catalog, "prueba.orders", template)
+show(orders)
+```
+
+Una tabla Iceberg sin confirmaciones (commits) constituye un estado válido: un esquema sin datos, que es precisamente lo que se obtiene en este caso. La escritura de filas vienen después.
+
+### Concatenación de datos (appending)
+
+Para la concatenación de datos usaremos DuckDB. 
+
+En primer lugar, crearemos un dataframe con el mismo esquema que el registrado el cual ya contiene datos: 
+
+```R
+template_datos <- data.frame(
+  id = 1:3,
+  item = c("mug", "kettle", "mug"),
+  amount = c(9.5, 42, 9.5),
+  day = as.Date("2026-07-01") + 0:2
+)
+```
+
+Posteriormente usaremos la función `dbWriteTable()` para escribir el data frame de R en DuckDB. Esta función crea una tabla en DuckDB con el contenido del data frame. 
+
+En este caso, escribiremos el data frame `template_datos` en DuckDB con el nombre `orders`:
+
+```R
+dbWriteTable(con, "orders", template_datos)
+```
+
+Verificamos que la tabla `orders` existe en DuckDB con la instrucción:
+
+```R
+dbGetQuery(con, "SELECT * FROM orders")
+```
+
+Por último, escribimos los datos de la tabla `orders` a la tabla vacía `orders` en el namespace `prueba`:
+
+```R
+dbExecute(con, "
+INSERT INTO cepcan.prueba.orders SELECT * FROM orders;
+")
+```
+
+Verificamos que los datos fueron escritps con la instrucción:
+
+```R
+dbGetQuery(con, "
+SELECT * FROM cepcan.prueba.orders;
+")
 ```
