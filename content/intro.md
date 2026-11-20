@@ -17,6 +17,34 @@ El desafío: ¿cómo integrar lo mejor de ambos mundos, combinando la flexibilid
 
 ## La solución de los Data Lakehouse
 
+A medida que las organizaciones comenzaron a aprovechar las ventajas de los data lakes para almacenar grandes volúmenes de datos sin procesar, se enfrentaron rápidamente a un desafío importante: los data lakes carecían las *garantías transaccionales* centrales a los data warehouses tradicionales. Sin la capacidad de administrar actualizaciones de datos, hacer cumplir los esquemas de las tablas, o gestionar de forma confiable escrituras concurrentes, los data lakes no podían mantener el mismo nivel de integridad y coherencia de los datos que las organizaciones obtenían de los data warehouse. Esta brecha representó una oportunidad crucial para la innovación, dando lugar al concepto de **Data Lakehouse**.
+
+La arquitectura de data lakehouse pretende combinar lo mejor de los data lakes y data warehouse al incorporar una capa transaccional sobre la capa de almacenamiento flexible ofrecido de los data lakes. Si los data lakes pudieran proporcionar las mismas garantías de Atomicidad, Consistencia, Aislamiento y Durabilidad (ACID) de los data warehouse permitiría a las organizaciones utilizar sus data lakes tanto para el almacenamiento de datos en crudo como para realizar análisis rápidos y fiables. Al agregar una capa transaccional sobre formatos de archivos como Apache Parquet, los data lakehouse permite gestionar estos datos como tablas en un data warehouse con una interfaz estructurada y basada en esquemas, con la que analistas, ingenieras y científicas de datos pueden trabajar con confianza.
+
+### Formatos de tabla de Data Lakehouse
+
+El concepto de data lakehouse descansa en la capacidad de tratar a los datos en un data lake con la misma estructura y confiabilidad de los warehouse tradicionales. Lograr esto requiere más que sólo formatos como Apache Parquet : se requiere **formatos de tabla** que puedan proporcionar la abstracción y las garantías transaccionales necesarias sobre los datos sin procesar. Estos formatos de tabla aportan la estructura y control necesitado para que los data lakehouse sean prácticos y ofrezcan un buen rendimiento a gran escala.
+
+Si bien resulta eficiente, el simple almacenamiento de archivos en un formato como Apache Parquet no bastaba para satisfacer los requisitos de transaccionalidad, rendimiento y esquema de las cargas de trabajo de analítica modernas. Esta brecha condujo al surgimiento de los formatos de tabla los cuales agregan una capa de abstracción sobre los archivos sin procesar, transformándolos en tablas manejables y consultables con garantías transaccionales.
+
+#### Formatos de tabla existentes
+
+Varios formatos de tabla han surgido para resolver estos retos, cada uno con sus propias fortalezas y debilidades: 
+
+- Apache Iceberg
+- Apache Hudi
+- Delta Lake
+- Apache Paimon
+
+##### Apache Iceberg
+
+Desarrollado originalmente en Netflix, Iceberg es un potente formato de tabla diseñado para gestionar datos a escala de petabytes en data lakes, permitiendo realizar análisis de alto rendimiento. Ofrece garantías ACID, evolución de esquemas y características únicas, como la evolución de particiones, lo que lo convierte en una de las opciones más flexibles y escalables para la creación de data lakehouses.
+
+Apache Iceberg se ha convertido en un actor fundamental para las arquitecturas data lakehouse. Su flexibilidad, rendimiento y gobernanza abierta han propiciado su adopción generalizada en todo el ecosistema de datos. Varios factores han contribuido a la adopción de Iceberg:
+
+- Amplio respaldo del ecosistema
+- Adquisición de Tabular por parte de Databricks
+- Proyecto transparente e impulsado por la comunidad
 
 ## Apache Iceberg
 
