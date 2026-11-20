@@ -10,6 +10,15 @@
 
 Los catálogos REST de Iceberg entregan tablas que se encuentran almacenadas en S3 (AWS, GCS, u otro sistema de almacenamiento de objetos open-source como RustFS o MinIO). En consecuencia, necesitamos agregar el argumento adicional `s3` para agregar la característica al realizar la compilación del código fuente del programa con [`Cargo`](https://doc.rust-lang.org/cargo/):
 
+!!! note "**_IMPORTANTE:_**"
+    Es necesario realizar una instalación previa de Rust. En un equipo macOS o Linux podemos descargar Rustup e instalar Rust ejecutando la siguiente instrucción en la terminal y, a continuación, sigue las instrucciones que aparecen en pantalla.
+
+    ```bash
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    ```
+
+    Para equipos Windows, sigue la siguiente página <https://rust-lang.github.io/rustup/installation/other.html> para descargar el ejecutable `rustup-init.exe`.
+
 
 !!! note "**_IMPORTANTE:_**"
     En Windows es necesario contar con la instalación previa de [RTools](https://cran.r-project.org/bin/windows/Rtools/) para el Toolchains de la construcción y compilación del paquete.
